@@ -93,9 +93,9 @@ spr <-
   fselect(country_code,
           reporting_year,
           reporting_level,
-          poverty_line,
+          spl = poverty_line,
           welfare_type,
-          headcount)
+          spr = headcount)
 
 # save ---------
 spl_datadir <-
