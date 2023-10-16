@@ -5,6 +5,8 @@ library(fastverse)
 
 # setup ------------
 
+## read functionis --------------
+source("R/functions.R")
 
 ## directories -----------
 force <- TRUE
@@ -57,55 +59,77 @@ mss_med <- joyn::merge(svy,
 
 # get medians for special cases ------------
 
-
 ## Group or aggregate data -----------
 
+### filter group data ------------
 dt_ga <- mss_med |>
-  fsubset(distribution_type %iin% c("aggregate", "group"))
+  fsubset(distribution_type %in% c("aggregate", "group"))
 
+# convert data frame to list to parse it to pmap functions below
 ld_ga <-  dt_ga |>
-  fsubset(1:2) |>
+  # fsubset(1:2) |>
   fselect(country  = country_code,
           year     = reporting_year,
           welfare_type) |>
   as.list()
+
+### load population data ------------
 dt_pop <- pipload::pip_load_aux("pop")
 
+### synth vector and median =-------
 ga_med <- ld_ga |>
+  # loop over all data
   purrr::pmap(\(country, year, welfare_type, ...) {
+    # load group data and filter mean and population which are already loaded in
+    # the global env
     lt <- filter_data(country, year, welfare_type, dt_pop)
-
+    # get synthetic vector for any reporting level available
     sth <- get_synth_vecs(lt)
+    # estimate median at the national level
     med <- sth |>
-      fsummarise(med = fmedian(welfare, w = weight))
+      fsummarise(median = fmedian(welfare, w = weight))
     med
   }) |>
+  # create data frame of medians
   rowbind() |>
-  add_vars(dt_ga[1:2])
-
-### load cache data -----------
-i <- 1
-country      <- dt_ga$country_code[[i]]
-year         <- dt_ga$reporting_year[[i]]
-welfare_type <- dt_ga$welfare_type[[i]]
-rl           <- "rural"
+  # add original data with metadata of groups data with missing median.
+  add_vars(dt_ga, pos = "front")
 
 
 
-
-med <- sth |>
-  fsummarise(med = fmedian(welfare, w = weight)) |>
-  add_vars(dt_ga[1])
-
-  add_vars(country_code   = country,
-           reporting_year = year,
-           welfare_type   = welfare_type,
-           pos            = "front")
-med
+## Microdata ------------
+### filter micro data ------------
+dt_md <- mss_med |>
+  fsubset(distribution_type == "micro")
 
 
+# convert data frame to list to parse it to pmap functions below
+ld_md  <-  dt_md |>
+  # fsubset(1:2) |>
+  fselect(country  = country_code,
+          year     = reporting_year,
+          welfare_type) |>
+  as.list()
+
+md_med <- ld_md |>
+  purrr::pmap(\(country, year, welfare_type, ...){
+    get_md_median(country, year, welfare_type)
+  }) |>
+  # create data frame of medians
+  rowbind() |>
+  # add original data with metadata of groups data with missing median.
+  add_vars(dt_md, pos = "front")
 
 
+## imputed data --------------
+### filter imputed data ------------
+dt_id <- mss_med |>
+  fsubset(distribution_type == "imputed")
+
+
+
+
+# Annex ----------------
 mss_med |>
   fselect(distribution_type) |>
   funique()

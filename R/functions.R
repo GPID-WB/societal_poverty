@@ -1,16 +1,8 @@
 
 filter_data <- function(country, year, welfare_type, dt_pop) {
 
-  ### load welfare data ------
-  WT <-
-    welfare_type |>
-    substr(1, 3) |>
-    toupper()
-
-  dt <-
-    pipload::pip_load_cache(country      = country,
-                            year         = year,
-                            welfare_type = WT)
+  # load cache data --------------
+  dt <-  load_cache(country, year, welfare_type)
 
   ### Load pop data ---------------
   yr <- year # to make it work
@@ -67,4 +59,32 @@ get_synth_vecs <- function(lt) {
                 }) |>
     rbindlist()
 
+}
+
+
+
+
+load_cache <- function(country, year, welfare_type) {
+  ### load welfare data ------
+  WT <-
+    welfare_type |>
+    substr(1, 3) |>
+    toupper()
+
+  dt <-
+    pipload::pip_load_cache(country      = country,
+                            year         = year,
+                            welfare_type = WT,
+                            verbose      = FALSE)
+
+}
+
+
+
+get_md_median <- function(country, year, welfare_type) {
+  dt <- load_cache(country, year, welfare_type)
+
+  med <- dt |>
+    fsummarise(median = fmedian(welfare_ppp, w = weight))
+  return(med)
 }
