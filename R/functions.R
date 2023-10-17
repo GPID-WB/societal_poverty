@@ -85,6 +85,10 @@ get_md_median <- function(country, year, welfare_type) {
   dt <- load_cache(country, year, welfare_type)
 
   med <- dt |>
-    fsummarise(median = fmedian(welfare_ppp, w = weight))
+    fgroup_by(imputation_id) |>
+    fsummarise(median = fmedian(welfare_ppp, w = weight)) |>
+    fselect(median) |>
+    fmean()
+
   return(med)
 }

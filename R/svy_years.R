@@ -18,6 +18,10 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
 }
 
 version  <- "20230919_2017_01_02_PROD"
+ppp_year <- py <- version |>
+  gsub("(.*)_([0-9]{4})(_.*)", "\\2", x = _) |>
+  as.numeric()
+
 
 ## Lkup files ===========
 lkups <- pipapi::create_versioned_lkups(data_dir        = data_dir,
@@ -97,10 +101,10 @@ ga_med <- ld_ga |>
 
 
 
-## Microdata ------------
+## Microdata  and imputed data------------
 ### filter micro data ------------
 dt_md <- mss_med |>
-  fsubset(distribution_type == "micro")
+  fsubset(distribution_type %in% c("micro", "imputed"))
 
 
 # convert data frame to list to parse it to pmap functions below
@@ -111,20 +115,60 @@ ld_md  <-  dt_md |>
           welfare_type) |>
   as.list()
 
+### estimate median ---------
+
 md_med <- ld_md |>
   purrr::pmap(\(country, year, welfare_type, ...){
     get_md_median(country, year, welfare_type)
   }) |>
   # create data frame of medians
-  rowbind() |>
+  data.table(median = _) |>
   # add original data with metadata of groups data with missing median.
   add_vars(dt_md, pos = "front")
 
 
-## imputed data --------------
-### filter imputed data ------------
-dt_id <- mss_med |>
-  fsubset(distribution_type == "imputed")
+# Get SPL ---------------
+
+## append all data bases together ---------------
+
+vars_to_keep <-
+  c(
+    "country_code",
+    "reporting_year",
+    "reporting_level",
+    "welfare_type",
+    "distribution_type",
+    "median"
+  )
+
+d_spl <-
+  lapply(c("ga_med", "md_med", "bsc_med"),
+         \(x){
+           get(x) |>
+             get_vars(vars_to_keep)
+         }
+  ) |>
+  rowbind()
+
+
+|>
+  fmutate(spl = wbpip:::compute_spl(weighted_median_ppp = median, ppp_year = py))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
