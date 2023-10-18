@@ -121,10 +121,20 @@ md_med <- ld_md |>
   purrr::pmap(\(country, year, welfare_type, ...){
     get_md_median(country, year, welfare_type)
   }) |>
+  unlist() |>
   # create data frame of medians
   data.table(median = _) |>
   # add original data with metadata of groups data with missing median.
   add_vars(dt_md, pos = "front")
+
+
+
+md_med <- md_med |>
+  unlist() |>
+  data.table(median = _) |>
+  # add original data with metadata of groups data with missing median.
+  add_vars(dt_md, pos = "front")
+
 
 
 # Get SPL ---------------
@@ -141,6 +151,7 @@ vars_to_keep <-
     "median"
   )
 
+## SPL -------------
 d_spl <-
   lapply(c("ga_med", "md_med", "bsc_med"),
          \(x){
@@ -148,50 +159,87 @@ d_spl <-
              get_vars(vars_to_keep)
          }
   ) |>
-  rowbind()
+  rowbind() |>
+  fmutate(spl = wbpip:::compute_spl(median, py)) |>
+  # remove urban/rural
+  fsubset(!(country_code %in% c("CHN", "IDN", "IND") &
+              reporting_level != "national"))
 
 
-|>
-  fmutate(spl = wbpip:::compute_spl(weighted_median_ppp = median, ppp_year = py))
+setorderv(d_spl, vars_to_keep)
+
+
+## SPR ---------------------
+
+
+lp_spr <- d_spl |>
+  fselect(country = country_code,
+          year    = reporting_year,
+          povline = spl,
+          welfare_type) |>
+  as.list()
+
+
+pspip <- purrr::possibly(pipapi::pip)
+
+
+ld_spr <- purrr::pmap(lp_spr,
+                      .f = \(country, year, povline, welfare_type){
+                        pspip(country      = country,
+                              year         = year,
+                              povline      = povline,
+                              welfare_type = welfare_type,
+                              lkup         = lkup)
+                      },
+                      .progress = TRUE)
+
+
+# find if there are nulls in the data
+ld_spr_null <-  purrr::keep(ld_spr, is.null)
+
+# convert to frame and add median
+
+d_med <- d_spl |>
+  fselect(country_code,
+          reporting_year,
+          welfare_type,
+          median)
+
+d_spr <- ld_spr |>
+  purrr::compact() |>
+  rowbind() |>
+  fselect(country_code,
+          reporting_year,
+          welfare_type,
+          reporting_level,
+          spl = poverty_line,
+          spr = headcount) |>
+  joyn::merge(d_med,
+              match_type = "m:1",
+              reportvar = FALSE)
+
+# Save ---------
+
+## project dir ----------
+spl_datadir <-
+  fs::path("data", version) |>
+  fs::dir_create(recurse = TRUE)
+
+
+fst::write_fst(d_spr, fs::path(spl_datadir, "spr_svy", ext = "fst"))
+haven::write_dta(d_spr, fs::path(spl_datadir, "spr_svy", ext = "dta"))
+
+## TFS dir -----------
+
+gls <- pipfun::pip_create_globals(
+  root_dir   = Sys.getenv("PIP_ROOT_DIR"),
+  vintage    = version,
+  create_dir = FALSE)
+
+# d_spr <- fst::read_fst(fs::path(spl_datadir, "spr_svy", ext = "fst"))
+fst::write_fst(d_spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_svy", ext = "fst"))
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Annex ----------------
-mss_med |>
-  fselect(distribution_type) |>
-  funique()
-
-
-mss_med |>
-  fsubset(distribution_type == "imputed") |>
-  fselect(country_code) |>
-  funique()
-
-
-
-
-svy[country_code == "CHN" & reporting_year == 1981]
-
-
-pipapi::pip("CHN", 2018, popshare = .5,
-            lkup = lkup)[]
-
-pipapi::pip("CHN", 2018, povline = 5,
-            lkup = lkup)[]

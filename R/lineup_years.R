@@ -78,7 +78,8 @@ spl <- med |>
 
 
 spr <-
-  purrr::pmap(spl, \(country, year, povline, welfare_type, reporting_level) {
+  purrr::pmap(spl,
+              \(country, year, povline, welfare_type, reporting_level) {
     y <-
       pipapi::pip(country      = country,
                   year         = year,
@@ -93,20 +94,41 @@ spr <-
   fselect(country_code,
           reporting_year,
           reporting_level,
-          spl = poverty_line,
           welfare_type,
+          spl = poverty_line,
           spr = headcount)
 
 # save ---------
+
+## Project dir --------------
 spl_datadir <-
   fs::path("data", version) |>
   fs::dir_create(recurse = TRUE)
 
 
 fst::write_fst(spr, fs::path(spl_datadir, "spr_lnp", ext = "fst"))
+haven::write_dta(spr, fs::path(spl_datadir, "spr_lnp", ext = "dta"))
 
 spr_id <- joyn::is_id(spr,by_vars, return_report = TRUE )
 spr_id[copies > 1]
+
+
+## TFS dir ---------------
+
+
+## TFS dir -----------
+
+gls <- pipfun::pip_create_globals(
+  root_dir   = Sys.getenv("PIP_ROOT_DIR"),
+  vintage    = version,
+  create_dir = FALSE)
+
+# spr <- fst::read_fst(fs::path(spl_datadir, "spr_lnp", ext = "fst"))
+fst::write_fst(spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_lnp", ext = "fst"))
+
+
+
+
 
 # data.table way.
 # rdt0 <- dt  |>
