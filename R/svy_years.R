@@ -1,5 +1,14 @@
 # Load libraries -----------
 library(fastverse)
+set_collapse(
+  nthreads = 4,
+  sort = FALSE,
+  mask = c("%in%"),
+  remove = "old"
+)
+# Final conflicts check (optional)
+fastverse_conflicts()
+
 # pak::pak("PIP-technical-team/pipapi@DEV")
 # pak::pak("PIP-technical-team/pipapi@DEV")
 
@@ -120,7 +129,8 @@ ld_md  <-  dt_md |>
 md_med <- ld_md |>
   purrr::pmap(\(country, year, welfare_type, ...){
     get_md_median(country, year, welfare_type)
-  }) |>
+  },
+  .progress = TRUE) |>
   unlist() |>
   # create data frame of medians
   data.table(median = _) |>

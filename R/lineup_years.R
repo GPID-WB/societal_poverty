@@ -1,7 +1,7 @@
 # Load libraries -----------
 library(fastverse)
 # pak::pak("PIP-technical-team/pipapi@DEV")
-pak::pak("PIP-technical-team/pipapi@DEV")
+
 
 # setup ------------
 
@@ -58,45 +58,58 @@ med <- dt  |>
 med_dup <-  duplicated(med, by = c(by_vars, "diff_med"))
 
 ## filter and SPL ------
-med <- med |>
+med2 <- med |>
   fsubset(!med_dup) |>
   fselect(c(by_vars, median = "poverty_line")) |>
+  fsubset(!(country_code %in% c("CHN", "IDN", "IND") &
+              reporting_level != "national")) |>
   ftransform(spl = wbpip:::compute_spl(median, ppp_year))
-
 
 
 # calculate SPR -------------
 
-
-spl <- med |>
+spl <- med2 |>
   fselect(country = country_code ,
           povline = spl,
           year    = reporting_year,
-          welfare_type,
-          reporting_level ) |>
+          welfare_type) |>
   as.list()
 
 
 spr <-
   purrr::pmap(spl,
-              \(country, year, povline, welfare_type, reporting_level) {
+              \(country, year, povline, welfare_type) {
     y <-
       pipapi::pip(country      = country,
                   year         = year,
                   povline      = povline,
                   lkup         = lkup,
                   fill_gaps    = TRUE,
-                  welfare_type = welfare_type,
-                  reporting_level = reporting_level)
-  }
+                  welfare_type = welfare_type)
+  },
+  .progress = TRUE
   ) |>
-  rbindlist() |>
+  rbindlist()
+
+
+spr  %<>%
   fselect(country_code,
           reporting_year,
           reporting_level,
           welfare_type,
           spl = poverty_line,
           spr = headcount)
+
+d_med <- med |>
+  fsubset(!med_dup) |>
+  fselect(c(by_vars, median = "poverty_line"))
+
+# join the median by reporting level
+d_spr <- joyn::merge(spr, d_med,
+                     match_type = "1:1",
+                     reportvar = FALSE)
+
+
 
 # save ---------
 
@@ -106,14 +119,11 @@ spl_datadir <-
   fs::dir_create(recurse = TRUE)
 
 
-fst::write_fst(spr, fs::path(spl_datadir, "spr_lnp", ext = "fst"))
-haven::write_dta(spr, fs::path(spl_datadir, "spr_lnp", ext = "dta"))
+fst::write_fst(d_spr, fs::path(spl_datadir, "spr_lnp", ext = "fst"))
+haven::write_dta(d_spr, fs::path(spl_datadir, "spr_lnp", ext = "dta"))
 
-spr_id <- joyn::is_id(spr,by_vars, return_report = TRUE )
+spr_id <- joyn::is_id(d_spr,by_vars, return_report = TRUE )
 spr_id[copies > 1]
-
-
-## TFS dir ---------------
 
 
 ## TFS dir -----------
@@ -124,7 +134,7 @@ gls <- pipfun::pip_create_globals(
   create_dir = FALSE)
 
 # spr <- fst::read_fst(fs::path(spl_datadir, "spr_lnp", ext = "fst"))
-fst::write_fst(spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_lnp", ext = "fst"))
+fst::write_fst(d_spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_lnp", ext = "fst"))
 
 
 
