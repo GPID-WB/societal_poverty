@@ -1,45 +1,10 @@
-# Load libraries -----------
-library(fastverse)
-set_collapse(
-  nthreads = 4,
-  sort = FALSE,
-  mask = c("%in%"),
-  remove = "old"
-)
-# Final conflicts check (optional)
-fastverse_conflicts()
+# setup ---------
+source("R/setup.R")
 
-# pak::pak("PIP-technical-team/pipapi@DEV")
-# pak::pak("PIP-technical-team/pipapi@DEV")
-
-# setup ------------
-
-## read functionis --------------
+## read functions --------------
 source("R/functions.R")
 
-## directories -----------
-force <- TRUE
-
-if (!"lkups" %in% ls() || isTRUE(force)) {
-  data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
-    fs::path()
-  fs::dir_ls(data_dir, recurse = FALSE)
-}
-
-version  <- "20230919_2017_01_02_PROD"
-ppp_year <- py <- version |>
-  gsub("(.*)_([0-9]{4})(_.*)", "\\2", x = _) |>
-  as.numeric()
-
-
-## Lkup files ===========
-lkups <- pipapi::create_versioned_lkups(data_dir        = data_dir,
-                                        vintage_pattern = version)
-
-# lkup <-  lkups$versions_paths$`20230328_2011_02_02_PROD`
-lkup <-  lkups$versions_paths[[lkups$latest_release]]
-
-# load data --------
+## load data --------
 
 ## by vars ---------
 by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type")
@@ -239,12 +204,6 @@ spl_datadir <-
 fst::write_fst(d_spr, fs::path(spl_datadir, "spr_svy", ext = "fst"))
 haven::write_dta(d_spr, fs::path(spl_datadir, "spr_svy", ext = "dta"))
 
-## TFS dir -----------
-
-gls <- pipfun::pip_create_globals(
-  root_dir   = Sys.getenv("PIP_ROOT_DIR"),
-  vintage    = version,
-  create_dir = FALSE)
 
 # d_spr <- fst::read_fst(fs::path(spl_datadir, "spr_svy", ext = "fst"))
 fst::write_fst(d_spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_svy", ext = "fst"))

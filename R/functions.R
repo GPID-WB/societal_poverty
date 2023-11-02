@@ -1,4 +1,10 @@
 
+# setup ---------
+source("R/setup.R")
+
+
+# Functions -------------
+
 filter_data <- function(country, year, welfare_type, dt_pop) {
 
   # load cache data --------------
@@ -92,3 +98,118 @@ get_md_median <- function(country, year, welfare_type) {
 
   return(med)
 }
+
+
+
+
+
+
+
+#' implicit poverty line
+#'
+#' @param goal numeric: population share to get implicit line for. Must be
+#'   between 0 and 1. Default is .5
+#' @param pl numeric: initial poverty line. Default is 2.15
+#' @param tolerance numeric: decimal precission. Default is 5 decimal places
+#'   decimals
+#' @param ni numeric: number of iterations before converging. Default 40.
+#' @param delta numeric: first jump. Default 3
+#' @inheritDotParams pipapi::pip
+#'
+#' @return numeric value
+#' @export
+#'
+#' @examples
+implicit_povline <- function(goal      = 0.5,
+                             povline   =  2.15,
+                             tolerance = 5,
+                             ni        = 40,
+                             delta     = 3,
+                             ...) {
+
+  # initial parameters -----------
+
+  s          <- 0    # iteration stage counter
+  num        <- 1    # numerator
+  i          <- 0    # general counter
+  status     <- "OK"
+  pl         <- povline
+
+
+  #   main calculations ----------
+
+
+  ## First call ---------
+  attempt <- pip_call(povline = pl, ...)
+
+  ## in case there is no data for requested year---------
+
+  if (length(attempt) == 0) {
+    s       <- ni + 1 # avoid the while loop
+    attempt <- 0
+    goal    <-  NA
+    pl      <-  NA
+    status  <- "No data"
+  }
+
+
+  #   start looping -------------
+
+
+  while (identical(round(attempt,tolerance), goal) != goal && s < ni) {
+    i <-  i + 1
+
+    if (attempt < goal) {
+      # before crossing goal
+      while (pl + delta < 0) {
+        delta <-  delta * 2
+      }
+      pl <- pl + delta
+      below <- 1
+    }
+
+    if (attempt > goal) {
+      # after crossing goal
+      while (pl - delta < 0) {
+        delta <- delta / 2
+      }
+      pl <- pl - delta
+      below <-  0
+    }
+
+    # call data
+    attempt <- pip_call(povline = pl, ...)
+
+    # assess if the value of delta has to change
+    if ((attempt > goal & below == 1) |
+        (attempt < goal & below == 0)) {
+      s <- s + 1
+
+      if (!identical(s %% 2, 0)) {
+        one <- -1
+      } else {
+        one <-  1
+      }
+
+      num <- (2 * num) + one
+      den <- 2 ^ s
+      delta <- (num / den) * delta
+
+    }  # end of condition to change the value of delta
+  }  # end of while
+
+
+  return(pl)
+
+
+}  # End of function povcalnet_iterate
+
+
+pip_call <- function(povline, ...) {
+  pip <- pipapi::pip(povline = povline,
+                         ...) |>
+    qDT()
+
+  pip[, headcount]
+}
+
