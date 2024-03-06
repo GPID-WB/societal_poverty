@@ -122,10 +122,15 @@ get_md_median <- function(country, year, welfare_type) {
 #' @examples
 implicit_povline <- function(goal      = 0.5,
                              povline   =  2.15,
+                             country = "AGO",
+                             year    = 1987,
+                             reporting_level = "urban",
+                             fill_gaps = TRUE,
+                             lkup,
                              tolerance = 5,
                              ni        = 40,
-                             delta     = 3,
-                             ...) {
+                             delta     = 3
+                             ) {
 
   # initial parameters -----------
 
@@ -140,7 +145,20 @@ implicit_povline <- function(goal      = 0.5,
 
 
   ## First call ---------
-  attempt <- pip_call(povline = pl, ...)
+  # cli::cli_progress_bar(format = "{country}-{year}")
+  attempt <- pip_call(povline = pl,
+                      lkup    = lkup,
+                      country = country,
+                      year    = year,
+                      reporting_level = reporting_level,
+                      fill_gaps = fill_gaps)
+
+  # attempt <- pip_call(povline = pl,
+  #                     country = "AGO",
+  #                     year    = 1987,
+  #                     fill_gaps = TRUE,
+  #                     reporting_level = "urban",
+  #                     lkup = lkup)
 
   ## in case there is no data for requested year---------
 
@@ -178,7 +196,12 @@ implicit_povline <- function(goal      = 0.5,
     }
 
     # call data
-    attempt <- pip_call(povline = pl, ...)
+    attempt <- pip_call(povline = pl,
+                        lkup    = lkup,
+                        country = country,
+                        year    = year,
+                        reporting_level = reporting_level,
+                        fill_gaps = fill_gaps)
 
     # assess if the value of delta has to change
     if ((attempt > goal & below == 1) |
@@ -196,8 +219,9 @@ implicit_povline <- function(goal      = 0.5,
       delta <- (num / den) * delta
 
     }  # end of condition to change the value of delta
+    # cli::cli_progress_update()
   }  # end of while
-
+  # cli::cli_progress_update(force = TRUE)
 
   return(pl)
 
@@ -205,11 +229,11 @@ implicit_povline <- function(goal      = 0.5,
 }  # End of function povcalnet_iterate
 
 
-pip_call <- function(povline, ...) {
-  pip <- pipapi::pip(povline = povline,
-                         ...) |>
-    qDT()
-
-  pip[, headcount]
+pip_call <- function(povline, lkup, ...) {
+  pipapi::pip(povline = povline,
+              lkup    = lkup,
+                   ...) |>
+    fselect(headcount) |>
+    reg_elem()
 }
 
