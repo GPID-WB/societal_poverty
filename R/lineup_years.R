@@ -57,13 +57,15 @@ spr  %<>%
           spr = headcount)
 
 d_med <- med |>
-  fsubset(!med_dup) |>
-  fselect(c(by_vars, median = "poverty_line"))
+  frename(country = country_code,
+          year = reporting_year)
+
 
 # join the median by reporting level
-d_spr <- joyn::merge(spr, d_med,
-                     match_type = "1:1",
-                     reportvar = FALSE)
+d_spr <- joyn::joyn(spr, d_med,
+                    by = by_vars,
+                    match_type = "1:1",
+                    reportvar = FALSE)
 
 
 
