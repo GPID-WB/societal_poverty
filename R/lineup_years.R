@@ -5,14 +5,8 @@ source("R/setup.R")
 source("R/functions.R")
 
 
-## load data --------
-dt <- fst::read_fst(fs::path(new_dir,
-                             "raw_recovered_dist", ext = "fst"),
-                    as.data.table = TRUE)
-#
-# write_parquet(dt, fs::path(new_dir,
-#                           "raw_recovered_dist"))
-#
+## get lined up medians --------
+source("R/get_linedup_median.R")  # this takes a while.
 
 
 ## by vars ---------
@@ -21,24 +15,9 @@ by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type"
 
 # format data -----------
 
-# I tried using arrow but it does not support window calculations and joining the databases is super slow. I also tried data.table way but it is slower than collapse.
-
-## get the min difference ----------
-med <- dt  |>
-  ftransform(diff_med = abs(.5 - headcount)) |>
-  fgroup_by(by_vars) |>
-  fmutate(gmin = (fmin(diff_med) == diff_med)) |>
-  fungroup() |>
-  fsubset(gmin)
-
-## Find duplicates ---------
-med_dup <-  duplicated(med, by = c(by_vars, "diff_med"))
-
 ## filter and SPL ------
 med2 <- med |>
-  fsubset(!med_dup) |>
-  fselect(c(by_vars, median = "poverty_line")) |>
-  fsubset(!(country_code %in% c("CHN", "IDN", "IND") &
+  fsubset(!(country %in% c("CHN", "IDN", "IND") &
               reporting_level != "national")) |>
   ftransform(spl = wbpip:::compute_spl(median, ppp_year))
 
@@ -46,9 +25,9 @@ med2 <- med |>
 # calculate SPR -------------
 
 spl <- med2 |>
-  fselect(country = country_code ,
+  fselect(country,
           povline = spl,
-          year    = reporting_year,
+          year,
           welfare_type) |>
   as.list()
 

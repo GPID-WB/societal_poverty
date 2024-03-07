@@ -13,29 +13,35 @@ cy <- gls$OUT_AUX_DIR_PC |>
   fselect(country = country_code,
           year    = reporting_year,
           reporting_level,
-          povline = predicted_mean_ppp ) |>
+          povline = predicted_mean_ppp,
+          welfare_type) |>
   na_omit() |>  # check this, as there should not be NAs
   funique()
 
-i = 1
-implicit_povline(goal           = 0.5,
-                povline         = cy$povline[i],
-                country         = cy$country[i],
-                year            = cy$year[i],
-                fill_gaps       = TRUE,
-                reporting_level = cy$reporting_level[i],
-                lkup            = lkup)
 
+# cy <- cy[1:10]
 
+# lmed <- purrr::pmap_dbl(cy,
+#                         implicit_povline,
+#                         lkup = lkup,
+#                         .progress = TRUE)
 
-cy <- cy[1:10]
+lmed <- purrr::pmap(cy[1],
+                    implicit_povline,
+                    lkup = lkup,
+                    complete_return = TRUE,
+                    .progress = list(format = "{cli::pb_bar} {cli::pb_current}/{cli::pb_total} ({cli::pb_percent}) | rate [{cli::pb_rate}] | ETA: {cli::pb_eta}"))
 
-lmed <- purrr::pmap_dbl(cy,
-                        implicit_povline,
-                        lkup = lkup,
-                        .progress = TRUE)
-
+# lmed <- purrr::pmap_dbl(cy,
+#                         implicit_povline,
+#                         lkup = lkup,
+#                         .progress = list(format = " {cli::pb_bar} {cli::pb_current}/{cli::pb_total} ({cli::pb_percent}) | rate [{cli::pb_rate}] | ETA: {cli::pb_eta}"))
+#
 
 med <- add_vars(cy, median = lmed) |>
-  fselect(-povline)
+  fselect(country,
+          year,
+          reporting_level,
+          welfare_type,
+          median)
 
