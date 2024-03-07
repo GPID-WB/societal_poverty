@@ -20,7 +20,7 @@ cy <- gls$OUT_AUX_DIR_PC |>
 
 
 # cy <- cy[1:10]
-cy <- cy[50:54]
+# cy <- cy[50:54]
 
 prg_dir <- "{cli::pb_bar} {cli::pb_current}/{cli::pb_total} ({cli::pb_percent}) | rate [{cli::pb_rate}] | ETA: {cli::pb_eta}"
 
