@@ -21,16 +21,18 @@ cy <- gls$OUT_AUX_DIR_PC |>
 
 # cy <- cy[1:10]
 
-# lmed <- purrr::pmap_dbl(cy,
-#                         implicit_povline,
-#                         lkup = lkup,
-#                         .progress = TRUE)
+prg_dir <- "{cli::pb_bar} {cli::pb_current}/{cli::pb_total} ({cli::pb_percent}) | rate [{cli::pb_rate}] | ETA: {cli::pb_eta}"
 
-lmed <- purrr::pmap(cy[1],
-                    implicit_povline,
-                    lkup = lkup,
-                    complete_return = TRUE,
-                    .progress = list(format = "{cli::pb_bar} {cli::pb_current}/{cli::pb_total} ({cli::pb_percent}) | rate [{cli::pb_rate}] | ETA: {cli::pb_eta}"))
+lmed <- purrr::pmap_dbl(cy,
+                        implicit_povline,
+                        lkup = lkup,
+                        .progress = list(format = prg_dir))
+
+# lmed <- purrr::pmap(cy,
+#                     implicit_povline,
+#                     lkup = lkup,
+#                     complete_return = TRUE,
+#                     .progress = list(format = "{cli::pb_bar} {cli::pb_current}/{cli::pb_total} ({cli::pb_percent}) | rate [{cli::pb_rate}] | ETA: {cli::pb_eta}"))
 
 # lmed <- purrr::pmap_dbl(cy,
 #                         implicit_povline,
