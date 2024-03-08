@@ -28,24 +28,38 @@ spl <- med2 |>
   fselect(country,
           povline = spl,
           year,
-          welfare_type) |>
-  as.list()
+          welfare_type)
 
-
+poss_pip <- purrr::possibly(pipapi::pip)
 spr <-
   purrr::pmap(spl,
               \(country, year, povline, welfare_type) {
     y <-
-      pipapi::pip(country      = country,
-                  year         = year,
-                  povline      = povline,
-                  lkup         = lkup,
-                  fill_gaps    = TRUE,
-                  welfare_type = welfare_type)
+      poss_pip(country      = country,
+              year         = year,
+              povline      = povline,
+              lkup         = lkup,
+              fill_gaps    = TRUE,
+              welfare_type = welfare_type)
+
+    if (is.null(y)) {
+     y <- data.table(country_code   = country,
+                     reporting_year = year,
+                     welfare_type  = welfare_type,
+                     poverty_line  = povline)
+    }
+
+    y
   },
   .progress = TRUE
   ) |>
-  rbindlist()
+  rowbind(fill = TRUE) |>
+  fgroup_by(country_code) |>
+  fmutate(country_name  =
+            na_focb(na_locf(country_name)),
+          reporting_level =
+            na_focb(na_locf(reporting_level))) |>
+  fungroup()
 
 
 spr  %<>%

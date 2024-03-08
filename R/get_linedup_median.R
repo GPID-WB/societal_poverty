@@ -7,14 +7,15 @@ source("R/functions.R")
 
 ## get countries and year -------------
 
+
 cy <- gls$OUT_AUX_DIR_PC |>
   fs::path("interpolated_means.qs") |>
   qs::qread() |>
-  fselect(country = country_code,
-          year    = reporting_year,
-          reporting_level,
-          povline = predicted_mean_ppp,
-          welfare_type) |>
+  fgroup_by(country_code, reporting_year, reporting_level, welfare_type) |>
+  fsummarise(povline = mean(predicted_mean_ppp, w = relative_distance)) |>
+  fungroup() |>
+  frename(country_code = country,
+          reporting_year = year) |>
   na_omit() |>  # check this, as there should not be NAs
   funique()
 
@@ -35,6 +36,9 @@ c_prob <- which(is.na(lmed))
 cy_prob <- cy[c_prob]
 cli::cli_alert_danger("The following country/year are problematic")
 cy_prob[]
+
+# plot(1:lmed[[i]]$iterations, lmed[[i]]$attempt, type = "o")
+
 
 # lmed <- purrr::pmap(cy,
 #                     implicit_povline,
