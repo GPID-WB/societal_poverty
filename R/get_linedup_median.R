@@ -7,13 +7,17 @@ source("R/functions.R")
 
 ## get countries and year -------------
 
-
 cy <- gls$OUT_AUX_DIR_PC |>
   fs::path("interpolated_means.qs") |>
   qs::qread() |>
   fgroup_by(country_code, reporting_year, reporting_level, welfare_type) |>
-  fsummarise(povline = mean(predicted_mean_ppp, w = relative_distance)) |>
+  fsummarise(povline = fmean(predicted_mean_ppp, w = relative_distance),
+             pop     = ffirst(reporting_pop)) |>
   fungroup() |>
+  fgroup_by(country_code, reporting_year, welfare_type) |>
+  fsummarise(povline        = fmean(povline, w = pop)) |>
+  fungroup() |>
+  ftransform(reporting_level = "national") |>
   frename(country_code = country,
           reporting_year = year) |>
   na_omit() |>  # check this, as there should not be NAs
