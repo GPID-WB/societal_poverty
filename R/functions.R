@@ -259,3 +259,18 @@ pip_call <- function(povline, lkup, ...) {
     reg_elem()
 }
 
+
+
+
+
+get_median_from_synth_vec <- \(country, year, welfare_type) {
+  # load group data and filter mean and population which are already loaded in
+  # the global env
+  lt <- filter_data(country, year, welfare_type, dt_pop)
+  # get synthetic vector for any reporting level available
+  sth <- get_synth_vecs(lt)
+  # estimate median at the national level
+  med <- sth |>
+    fsummarise(median = fmedian(welfare, w = weight))
+  med
+}

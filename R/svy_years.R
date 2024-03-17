@@ -24,13 +24,13 @@ svy <- pipapi::get_aux_table(data_dir    = lkup$data_root,
                              long_format = TRUE) |>
   get_vars(c(by_vars, "distribution_type", "survey_mean_ppp"))
 
-mss_med <- joyn::merge(svy,
+mss_med <- joyn::joyn(svy,
                        bsc_med,
-                       by         = by_vars,
-                       match_type = "1:1",
-                       yvars      = FALSE) |>
-  fsubset(report == "x") |>
-  fselect(-report) |>
+                       by             = by_vars,
+                       match_type     = "1:1",
+                      y_vars_to_keep  = FALSE) |>
+  fsubset(.joyn == "x") |>
+  fselect(-.joyn) |>
   # remove urban/rural
   fsubset(!(country_code %in% c("CHN", "IDN", "IND") &
             reporting_level != "national"))
@@ -48,32 +48,25 @@ ld_ga <-  dt_ga |>
   # fsubset(1:2) |>
   fselect(country  = country_code,
           year     = reporting_year,
-          welfare_type) |>
-  as.list()
+          welfare_type)
+
+# |>
+#   as.list()
 
 ### load population data ------------
 dt_pop <- pipload::pip_load_aux("pop")
 
-### synth vector and median =-------
-ga_med <- ld_ga |>
+
+poss_median_from_synth_vec <- purrr::possibly(get_median_from_synth_vec,
+                                              otherwise = data.table(median = NA))
+sv_med <- ld_ga |>
   # loop over all data
-  purrr::pmap(\(country, year, welfare_type, ...) {
-    # load group data and filter mean and population which are already loaded in
-    # the global env
-    lt <- filter_data(country, year, welfare_type, dt_pop)
-    # get synthetic vector for any reporting level available
-    sth <- get_synth_vecs(lt)
-    # estimate median at the national level
-    med <- sth |>
-      fsummarise(median = fmedian(welfare, w = weight))
-    med
-  }) |>
+  purrr::pmap(poss_median_from_synth_vec) |>
   # create data frame of medians
-  rowbind() |>
-  # add original data with metadata of groups data with missing median.
-  add_vars(dt_ga, pos = "front")
+  rowbind()
 
-
+# add original data with metadata of groups data with missing median.
+ga_med <- add_vars(dt_ga, sv_med)
 
 ## Microdata  and imputed data------------
 ### filter micro data ------------
@@ -101,15 +94,6 @@ md_med <- ld_md |>
   data.table(median = _) |>
   # add original data with metadata of groups data with missing median.
   add_vars(dt_md, pos = "front")
-
-
-
-md_med <- md_med |>
-  unlist() |>
-  data.table(median = _) |>
-  # add original data with metadata of groups data with missing median.
-  add_vars(dt_md, pos = "front")
-
 
 
 # Get SPL ---------------
@@ -160,17 +144,27 @@ pspip <- purrr::possibly(pipapi::pip)
 
 ld_spr <- purrr::pmap(lp_spr,
                       .f = \(country, year, povline, welfare_type){
-                        pspip(country      = country,
+                        y <- pspip(country      = country,
                               year         = year,
                               povline      = povline,
                               welfare_type = welfare_type,
                               lkup         = lkup)
+                        if (is.null(y)) {
+                          y <- data.table(
+                            country_code = country,
+                            reporting_year = year,
+                            poverty_line = povline,
+                            welfare_type = welfare_type
+                          )
+                        }
+                        y
                       },
                       .progress = TRUE)
 
 
 # find if there are nulls in the data
-ld_spr_null <-  purrr::keep(ld_spr, is.null)
+# ld_spr_null <-  purrr::keep(ld_spr, is.null)
+# ld_spr_null[]
 
 # convert to frame and add median
 
@@ -182,16 +176,17 @@ d_med <- d_spl |>
 
 d_spr <- ld_spr |>
   purrr::compact() |>
-  rowbind() |>
+  rowbind(fill = TRUE) |>
   fselect(country_code,
           reporting_year,
           welfare_type,
           reporting_level,
           spl = poverty_line,
           spr = headcount) |>
-  joyn::merge(d_med,
+  joyn::joyn(d_med,
               match_type = "m:1",
-              reportvar = FALSE)
+             reportvar = FALSE
+             )
 
 # Save ---------
 
