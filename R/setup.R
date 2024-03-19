@@ -24,6 +24,7 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
 
 version  <- "20230919_2017_01_02_PROD"
 version  <- "20240326_2017_01_02_PROD"
+version  <- "20240326_2011_02_02_PROD"
 
 
 ## Lkup files ===========
