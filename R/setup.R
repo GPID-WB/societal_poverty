@@ -15,7 +15,7 @@ fastverse_conflicts()
 # setup ------------
 
 ## directories -----------
-force <- FALSE
+force <- TRUE
 
 if (!"lkups" %in% ls() || isTRUE(force)) {
   data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
