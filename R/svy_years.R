@@ -57,8 +57,9 @@ ld_ga <-  dt_ga |>
 dt_pop <- pipload::pip_load_aux("pop")
 
 
-poss_median_from_synth_vec <- purrr::possibly(get_median_from_synth_vec,
-                                              otherwise = data.table(median = NA))
+poss_median_from_synth_vec <-
+  purrr::possibly(get_median_from_synth_vec,
+                  otherwise = data.table(median = NA))
 sv_med <- ld_ga |>
   # loop over all data
   purrr::pmap(poss_median_from_synth_vec) |>
@@ -111,19 +112,15 @@ vars_to_keep <-
   )
 
 ## SPL -------------
+
 d_spl <-
-  lapply(c("ga_med", "md_med", "bsc_med"),
-         \(x){
-           get(x) |>
-             get_vars(vars_to_keep)
-         }
-  ) |>
-  rowbind() |>
+  lapply(c("ga_med", "md_med", "bsc_med"), get) |>
+  rowbind(fill = TRUE) |>
+  get_vars(vars_to_keep) |>
   fmutate(spl = wbpip:::compute_spl(median, py)) |>
   # remove urban/rural
   fsubset(!(country_code %in% c("CHN", "IDN", "IND") &
               reporting_level != "national"))
-
 
 setorderv(d_spl, vars_to_keep)
 
