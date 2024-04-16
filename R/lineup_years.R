@@ -80,15 +80,34 @@ d_spr <- joyn::joyn(spr, d_med,
                     by = by_vars,
                     match_type = "1:1",
                     reportvar = FALSE)
+setkey(d_spr, NULL)
 
-
-
-# save ---------
+# Load existing data if it exists -------------
 
 ## Project dir --------------
 spl_datadir <-
   fs::path("data", version) |>
   fs::dir_create(recurse = TRUE)
+
+fst_file <- fs::path(spl_datadir, "spr_lnp", ext = "fst")
+
+if (fs::file_exists(fst_file)) {
+  f_spr <- fst::read_fst(fst_file, as.data.table = TRUE)
+  setkey(f_spr, NULL)
+  byvars <-
+    c("country_code",
+      "reporting_year")
+
+  # remove old  information
+  f_spr <-  f_spr[!d_spr, on = byvars]
+
+  # add new information
+  d_spr <- rowbind(f_spr, d_spr)
+}
+
+
+
+# save ---------
 
 
 fst::write_fst(d_spr, fs::path(spl_datadir, "spr_lnp", ext = "fst"))

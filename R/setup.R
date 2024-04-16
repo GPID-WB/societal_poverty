@@ -45,6 +45,10 @@ new_dir <-
 
 
 
+## filter data --------------
+
+ct <- "ARG"
+yr <- NULL
 
 ## TFS dir -----------
 
