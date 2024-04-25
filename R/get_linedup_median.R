@@ -41,7 +41,7 @@ cy <- rowbind(cy1, cy2) |>
 if (is.character(ct)) {
   cy <- cy[country == ct ]
 }
-if (is.integer(yr)) {
+if (is.numeric(yr)) {
   cy <- cy[year %in% yr]
 }
 
