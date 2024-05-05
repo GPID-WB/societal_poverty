@@ -22,9 +22,10 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
     fs::path()
   fs::dir_ls(data_dir, recurse = FALSE)
 
-version  <- "20230919_2017_01_02_PROD"
+
 version  <- "20240326_2011_02_02_PROD"
 version  <- "20240326_2017_01_02_PROD"
+version  <- "20240429_2017_01_02_INT"
 
 
 ## Lkup files ===========
@@ -47,9 +48,10 @@ new_dir <-
 
 ## filter data --------------
 
-ct <- NULL
 ct <- "LBN"
+ct <- NULL
 yr <- 2022
+yr <- NULL
 
 ## TFS dir -----------
 

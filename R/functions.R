@@ -70,7 +70,7 @@ get_synth_vecs <- function(lt) {
 
 
 
-load_cache <- function(country, year, welfare_type) {
+load_cache <- function(country, year, welfare_type, version) {
   ### load welfare data ------
   WT <-
     welfare_type |>
@@ -81,14 +81,15 @@ load_cache <- function(country, year, welfare_type) {
     pipload::pip_load_cache(country      = country,
                             year         = year,
                             welfare_type = WT,
-                            verbose      = FALSE)
+                            verbose      = FALSE,
+                            version      = version)
 
 }
 
 
 
-get_md_median <- function(country, year, welfare_type) {
-  dt <- load_cache(country, year, welfare_type)
+get_md_median <- function(country, year, welfare_type, version) {
+  dt <- load_cache(country, year, welfare_type, version)
 
   med <- dt |>
     fgroup_by(imputation_id) |>

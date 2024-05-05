@@ -60,14 +60,25 @@ dt_pop <- pipload::pip_load_aux("pop")
 poss_median_from_synth_vec <-
   purrr::possibly(get_median_from_synth_vec,
                   otherwise = data.table(median = NA))
-sv_med <- ld_ga |>
-  # loop over all data
-  purrr::pmap(poss_median_from_synth_vec) |>
-  # create data frame of medians
-  rowbind()
+if (nrow(ld_ga) > 0) {
+  sv_med <- ld_ga |>
+    # loop over all data
+    purrr::pmap(poss_median_from_synth_vec) |>
+    # create data frame of medians
+    rowbind()
+  # add original data with metadata of groups data with missing median.
+  ga_med <- add_vars(dt_ga, sv_med)
+} else {
+  ga_med <- data.table(
+      country_code      = NA_character_,
+      reporting_year    = NA_real_,
+      reporting_level   = NA_character_,
+      welfare_type      = NA_character_,
+      distribution_type = NA_character_,
+      median            = NA_real_
+  )
+}
 
-# add original data with metadata of groups data with missing median.
-ga_med <- add_vars(dt_ga, sv_med)
 
 ## Microdata  and imputed data------------
 ### filter micro data ------------
@@ -87,7 +98,7 @@ ld_md  <-  dt_md |>
 
 md_med <- ld_md |>
   purrr::pmap(\(country, year, welfare_type, ...){
-    get_md_median(country, year, welfare_type)
+    get_md_median(country, year, welfare_type, version = gls$vintage_dir)
   },
   .progress = TRUE) |>
   unlist() |>
