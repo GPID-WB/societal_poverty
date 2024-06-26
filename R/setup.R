@@ -26,6 +26,7 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
 version  <- "20240326_2011_02_02_PROD"
 version  <- "20240326_2017_01_02_PROD"
 version  <- "20240429_2017_01_02_INT"
+version  <- "20240627_2017_01_02_PROD"
 
 
 ## Lkup files ===========
@@ -48,9 +49,9 @@ new_dir <-
 
 ## filter data --------------
 
-ct <- "LBN"
-ct <- NULL
+ct <- "IDN"
 yr <- 2022
+ct <- NULL
 yr <- NULL
 
 ## TFS dir -----------
