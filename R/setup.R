@@ -49,10 +49,10 @@ new_dir <-
 
 ## filter data --------------
 
-ct <- NULL
 ct <- "NGA"
-yr <- NULL
 yr <- 2022
+ct <- NULL
+yr <- NULL
 
 ## TFS dir -----------
 
