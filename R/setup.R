@@ -49,8 +49,8 @@ new_dir <-
 
 ## filter data --------------
 
-ct <- "QAT"
 yr <- 2024
+ct <- "QAT"
 ct <- NULL
 yr <- NULL
 
