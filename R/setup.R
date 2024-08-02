@@ -49,9 +49,9 @@ new_dir <-
 
 ## filter data --------------
 
-yr <- 2024
-ct <- "QAT"
 ct <- NULL
+ct <- c("NGA")
+yr <- c(2023, 2024)
 yr <- NULL
 
 ## TFS dir -----------
