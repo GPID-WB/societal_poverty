@@ -50,9 +50,9 @@ new_dir <-
 ## filter data --------------
 
 ct <- NULL
-ct <- c("NGA")
-yr <- c(2023, 2024)
+ct <- c("NGA", "MOZ", "ETH")
 yr <- NULL
+yr <- 2017:2024
 
 ## TFS dir -----------
 
