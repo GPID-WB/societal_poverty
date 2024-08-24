@@ -27,6 +27,7 @@ version  <- "20240326_2011_02_02_PROD"
 version  <- "20240326_2017_01_02_PROD"
 version  <- "20240429_2017_01_02_INT"
 version  <- "20240627_2017_01_02_PROD"
+version  <- "20240627_2011_02_02_PROD"
 
 
 ## Lkup files ===========
@@ -43,16 +44,17 @@ lkup <-  lkups$versions_paths[[lkups$latest_release]]
 
 
 new_dir <-
-  fs::path("p:/03.pip/estimates/1kbins_lineup", version)
+  fs::path("p:/03.pip/estimates/1kbins_lineup", version) |>
+  fs::dir_create()
 
 
 
 ## filter data --------------
 
-ct <- NULL
 ct <- c("NGA", "MOZ", "ETH")
-yr <- NULL
 yr <- 2017:2024
+ct <- NULL
+yr <- NULL
 
 ## TFS dir -----------
 
