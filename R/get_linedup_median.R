@@ -4,6 +4,17 @@
 ## read functions --------------
 source("R/functions.R")
 
+lup_medians_f <-
+  fs::path("data", version) |>
+  fs::dir_create(recurse = TRUE) |>
+  fs::path("lup_medians", ext = "fst")
+
+if (fs::file_exists(lup_medians_f)) {
+  med <- fst::read_fst(lup_medians_f, as.data.table = TRUE)
+} else {
+  med <- NULL
+}
+
 
 ## get countries and year -------------
 
@@ -36,14 +47,27 @@ cy <- rowbind(cy1, cy2) |>
   funique()
 
 
+# for testing only
+# srows <- sample(1:nrow(cy), 10, replace = FALSE)
+# med <- cy[srows
+#           ][, median := srows]
 
-
+# if I want to get estimates only in a subset
 if (is.character(ct)) {
   cy <- cy[country %in% ct ]
 }
 if (is.numeric(yr)) {
   cy <- cy[year %in% yr]
 }
+
+# if data is already estimated.
+force <- TRUE
+if (!is.null(med) || force == FALSE) {
+  cy <- cy[!med, on = names(cy)]
+}
+
+
+# note: make sure it works when povline has changed
 
 
 # cy <- cy[1:10]
@@ -80,12 +104,21 @@ cy_prob[]
 #
 
 
-pushoverr::pushover("Lined up medians DONE")
 
-med <- add_vars(cy, median = lmed) |>
+med2 <- add_vars(cy, median = lmed) |>
   fselect(country,
           year,
           reporting_level,
           welfare_type,
           median)
+
+if (!is.null(med) || force == FALSE) {
+  med <- rowbind(med, med2, fill = TRUE)
+} else {
+  med <- copy(med2)
+}
+
+fst::write_fst(med, lup_medians_f)
+
+pushoverr::pushover("Lined up medians DONE")
 
