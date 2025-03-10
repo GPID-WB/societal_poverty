@@ -61,8 +61,9 @@ if (is.numeric(yr)) {
 }
 
 # if data is already estimated.
-force <- TRUE
+force <- FALSE
 if (!is.null(med) || force == FALSE) {
+  setnames(med, "median", "povline")
   cy <- cy[!med, on = names(cy)]
 }
 
