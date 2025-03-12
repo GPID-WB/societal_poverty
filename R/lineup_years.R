@@ -17,7 +17,8 @@ by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type"
 
 ## filter and SPL ------
 med2 <- med |>
-  fsubset(!(country %in% c("CHN", "IDN", "IND") &
+  # fsubset(!(country %in% c("CHN", "IDN", "IND") &
+  fsubset(!(country %in% c("CHN") &
               reporting_level != "national")) |>
   ftransform(spl = wbpip:::compute_spl(median, ppp_year))
 
@@ -95,9 +96,7 @@ fst_file <- fs::path(spl_datadir, "spr_lnp", ext = "fst")
 if (fs::file_exists(fst_file)) {
   f_spr <- fst::read_fst(fst_file, as.data.table = TRUE)
   setkey(f_spr, NULL)
-  byvars <-
-    c("country_code",
-      "reporting_year")
+  byvars <- c("country_code", "reporting_year")
 
   # remove old  information
   f_spr <-  f_spr[!d_spr, on = byvars]
