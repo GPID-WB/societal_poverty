@@ -63,9 +63,11 @@ if (is.numeric(yr)) {
 # if data is already estimated.
 force <- FALSE
 by_vars <- c("country", "year", "reporting_level", "welfare_type")
-if (!is.null(med) || force == FALSE) {
-  cy <- cy[!med[, ..by_vars],
-           on = by_vars]
+if (!is.null(med)) {
+  if (force == FALSE) {
+    cy <- cy[!med[, ..by_vars],
+             on = by_vars]
+  }
 }
 setnames(cy, "median", "povline")
 
