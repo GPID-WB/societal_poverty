@@ -32,7 +32,7 @@ mss_med <- joyn::joyn(svy,
   fsubset(.joyn == "x") |>
   fselect(-.joyn) |>
   # remove urban/rural
-  fsubset(!(country_code %in% c("CHN", "IDN", "IND") &
+  fsubset(!(country_code %in% c("CHN") &
             reporting_level != "national"))
 
 # get medians for special cases ------------
