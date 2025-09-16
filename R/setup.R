@@ -23,15 +23,14 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
   fs::dir_ls(data_dir, recurse = FALSE)
 
 
-version  <- "20240326_2011_02_02_PROD"
-version  <- "20240326_2017_01_02_PROD"
-version  <- "20240429_2017_01_02_INT"
-
 version  <- "20240627_2017_01_02_PROD"
 version  <- "20240627_2011_02_02_PROD"
 
 version  <- "20250401_2017_01_02_PROD"
 version  <- "20250401_2021_01_02_PROD"
+
+version  <- "20250930_2017_01_02_PROD"
+version  <- "20250930_2021_01_02_PROD"
 
 
 ## Lkup files ===========

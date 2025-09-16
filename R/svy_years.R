@@ -44,14 +44,13 @@ dt_ga <- mss_med |>
   fsubset(distribution_type %in% c("aggregate", "group"))
 
 # convert data frame to list to parse it to pmap functions below
-ld_ga <-  dt_ga |>
+ld_ga <-  dt_ga |> # before > dt_ga
   # fsubset(1:2) |>
   fselect(country  = country_code,
           year     = reporting_year,
-          welfare_type)
+          welfare_type) |>
+  as.list()
 
-# |>
-#   as.list()
 
 ### load population data ------------
 dt_pop <- pipload::pip_load_aux("pop")
@@ -60,10 +59,17 @@ dt_pop <- pipload::pip_load_aux("pop")
 poss_median_from_synth_vec <-
   purrr::possibly(get_median_from_synth_vec,
                   otherwise = data.table(median = NA))
-if (nrow(ld_ga) > 0) {
-  sv_med <- ld_ga |>
-    # loop over all data
-    purrr::pmap(poss_median_from_synth_vec) |>
+if (length(ld_ga$country) > 0) {
+
+  sv_med <-
+    lapply(cli::cli_progress_along(ld_ga$country),
+           \(.) {
+           poss_median_from_synth_vec(country = ld_ga$country[.],
+                                      year =   ld_ga$year[.],
+                                      welfare_type = ld_ga$welfare_type[.],
+                                      dt_pop = dt_pop,
+                                      version = version)
+                   }) |>
     # create data frame of medians
     rowbind()
   # add original data with metadata of groups data with missing median.
@@ -144,8 +150,8 @@ lp_spr <- d_spl |>
           year    = reporting_year,
           povline = spl,
           welfare_type) |>
+  na_omit() |>
   as.list()
-
 
 pspip <- purrr::possibly(pipapi::pip)
 

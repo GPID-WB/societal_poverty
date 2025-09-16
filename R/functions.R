@@ -1,14 +1,14 @@
 
 # setup ---------
-source("R/setup.R")
+# source("R/setup.R")
 
 
 # Functions -------------
 
-filter_data <- function(country, year, welfare_type, dt_pop) {
+filter_data <- function(country, year, welfare_type, dt_pop, version) {
 
   # load cache data --------------
-  dt <-  load_cache(country, year, welfare_type)
+  dt <-  load_cache(country, year, welfare_type, version)
 
   ### Load pop data ---------------
   yr <- year # to make it work
@@ -264,10 +264,10 @@ pip_call <- function(povline, lkup, ...) {
 
 
 
-get_median_from_synth_vec <- \(country, year, welfare_type) {
+get_median_from_synth_vec <- \(country, year, welfare_type, dt_pop, version) {
   # load group data and filter mean and population which are already loaded in
   # the global env
-  lt <- filter_data(country, year, welfare_type, dt_pop)
+  lt <- filter_data(country, year, welfare_type, dt_pop, version)
   # get synthetic vector for any reporting level available
   sth <- get_synth_vecs(lt)
   # estimate median at the national level
