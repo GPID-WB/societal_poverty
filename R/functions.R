@@ -34,6 +34,8 @@ filter_data <- function(country, year, welfare_type, dt_pop, version) {
               pop  = pop,
               mean  = mn))
 }
+
+
 get_synth_vecs <- function(lt) {
 
 
@@ -68,8 +70,6 @@ get_synth_vecs <- function(lt) {
 }
 
 
-
-
 load_cache <- function(country, year, welfare_type, version) {
   ### load welfare data ------
   WT <-
@@ -99,10 +99,6 @@ get_md_median <- function(country, year, welfare_type, version) {
 
   return(med)
 }
-
-
-
-
 
 
 
@@ -259,8 +255,6 @@ pip_call <- function(povline, lkup, ...) {
     fselect(headcount) |>
     reg_elem()
 }
-
-
 
 
 

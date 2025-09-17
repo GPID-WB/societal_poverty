@@ -5,9 +5,16 @@ source("R/setup.R")
 source("R/functions.R")
 
 
-## get lined up medians --------
-source("R/get_linedup_median.R")  # this takes a while.
+dt <- pipapi::pip(popshare = .5,
+                  fill_gaps = TRUE,
+                  lkup = lkup)
 
+med <- get_vars(dt, c("country_code",
+                      "reporting_year",
+                      "reporting_level",
+                      "welfare_type",
+                      "poverty_line")) |>
+  frename(median = poverty_line)
 
 ## by vars ---------
 by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type")

@@ -29,8 +29,8 @@ cy <- gls$OUT_AUX_DIR_PC |>
     by = .(country_code, reporting_year, welfare_type)]
 
 cy1 <- cy[n == 1
-          ][,
-            c("n", "pop") := NULL]
+][,
+  c("n", "pop") := NULL]
 
 cy2 <- cy |>
   fsubset(n == 2) |>
