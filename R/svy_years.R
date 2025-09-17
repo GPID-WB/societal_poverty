@@ -211,11 +211,14 @@ spl_datadir <-
 
 
 fst::write_fst(d_spr, fs::path(spl_datadir, "spr_svy", ext = "fst"))
+fst::write_fst(d_spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_svy", ext = "fst"))
+fst::write_fst(d_spr, fs::path(lkup$data_root, "_aux", "spr_svy", ext = "fst"))
+
+
 haven::write_dta(d_spr, fs::path(spl_datadir, "spr_svy", ext = "dta"))
 
 
 # d_spr <- fst::read_fst(fs::path(spl_datadir, "spr_svy", ext = "fst"))
-fst::write_fst(d_spr, fs::path(gls$OUT_AUX_DIR_PC, "spr_svy", ext = "fst"))
 
 
 
