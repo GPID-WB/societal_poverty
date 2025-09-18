@@ -10,10 +10,34 @@ source("R/functions.R")
 by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type")
 
 
-## basic medians for most of the countries ------
-bsc_med <- pipapi::pip(popshare = .5,
-                       lkup = lkup)
+vars_to_keep <-
+  c(
+    "country_code",
+    "reporting_year",
+    "reporting_level",
+    "welfare_type",
+    "distribution_type",
+    "median"
+  )
 
+## basic medians for most of the countries ------
+
+
+manual <- TRUE
+if (manual) {
+  ctr <- "DOM"
+  yr  <- 2024
+  d_spl <- pipapi::pip(country = ctr,
+                     year = yr,
+                     popshare = .5,
+                     lkup = lkup) |>
+    fmutate(spl = wbpip:::compute_spl(median, py)) |>
+    setorderv(vars_to_keep)
+
+
+} else {
+  bsc_med <- pipapi::pip(popshare = .5,
+                         lkup = lkup)
 
 bsc_med %<>% # Assignment pipe. It's just cool to use. No other reason
   na_omit(cols = "median")
@@ -116,18 +140,6 @@ md_med <- ld_md |>
 
 # Get SPL ---------------
 
-## append all data bases together ---------------
-
-vars_to_keep <-
-  c(
-    "country_code",
-    "reporting_year",
-    "reporting_level",
-    "welfare_type",
-    "distribution_type",
-    "median"
-  )
-
 ## SPL -------------
 
 d_spl <-
@@ -140,7 +152,7 @@ d_spl <-
               reporting_level != "national"))
 
 setorderv(d_spl, vars_to_keep)
-
+}
 
 ## SPR ---------------------
 
@@ -204,10 +216,29 @@ d_spr <- ld_spr |>
 
 # Save ---------
 
-## project dir ----------
+## Project dir --------------
 spl_datadir <-
   fs::path("data", version) |>
   fs::dir_create(recurse = TRUE)
+
+fst_file <- fs::path(spl_datadir, "spr_svy", ext = "fst")
+
+if (fs::file_exists(fst_file)) {
+  f_spr <- fst::read_fst(fst_file, as.data.table = TRUE)
+  setkey(f_spr, NULL)
+  byvars <- c("country_code", "reporting_year")
+
+  # remove old  information
+  f_spr <-  f_spr[!d_spr, on = byvars]
+
+  # add new information
+  d_spr <- rowbind(f_spr, d_spr, fill = TRUE)
+}
+
+
+
+
+
 
 
 fst::write_fst(d_spr, fs::path(spl_datadir, "spr_svy", ext = "fst"))

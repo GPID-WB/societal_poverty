@@ -26,6 +26,25 @@ if (!fs::file_exists(lup_medians_f) || isTRUE(force)) {
 }
 
 
+# Updsate manually a particualr country
+manual <- TRUE
+if (manual) {
+  ctr <- "DOM"
+  yr  <- 2024
+  med <- pipapi::pip(country = ctr,
+                     year = yr,
+                     popshare = .5,
+                     fill_gaps = TRUE,
+                     lkup = lkup) |>
+  get_vars(c("country_code",
+                        "reporting_year",
+                        "reporting_level",
+                        "welfare_type",
+                        "poverty_line")) |>
+    frename(median = poverty_line)
+}
+
+
 
 ## by vars ---------
 by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type")
@@ -54,9 +73,18 @@ spl <- med2 |>
 povlines <- funique(spl$spl)
 
 
-mpl <- pipapi::pip(povline = povlines,
-                   lkup = lkup,
-                   fill_gaps = TRUE)
+if (manual) {
+  mpl <- pipapi::pip(country = ctr,
+                     year = yr,
+                     povline = povlines,
+                     lkup = lkup,
+                     fill_gaps = TRUE)
+
+} else {
+  mpl <- pipapi::pip(povline = povlines,
+                     lkup = lkup,
+                     fill_gaps = TRUE)
+}
 
 mpl <- get_vars(mpl, c("country_code",
                         "reporting_year",
@@ -78,7 +106,8 @@ chnur <- spl[country_code == "CHN"
                   ][, g := NULL]
 
 spl <- rowbind(spl, chnur, fill = TRUE) |>
-  setorder(country_code, reporting_level, reporting_year)
+  setorder(country_code, reporting_level, reporting_year) |>
+  _[!is.na(country_code)]
 
 
 spr <- join(spl, mpl,
@@ -88,9 +117,9 @@ spr <- join(spl, mpl,
                    "welfare_type",
                    "spl"),
             how = "left",
-            validate = "1:1")
-
-setnames(spr, "headcount", "spr")
+            validate = "1:1",
+            overid = 2) |>
+  setnames("headcount", "spr")
 
 
 
@@ -121,7 +150,7 @@ if (fs::file_exists(fst_file)) {
   f_spr <-  f_spr[!d_spr, on = byvars]
 
   # add new information
-  d_spr <- rowbind(f_spr, d_spr)
+  d_spr <- rowbind(f_spr, d_spr, fill = TRUE)
 }
 
 
