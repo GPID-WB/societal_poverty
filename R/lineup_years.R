@@ -27,7 +27,7 @@ if (!fs::file_exists(lup_medians_f) || isTRUE(force)) {
 
 
 # Updsate manually a particualr country
-manual <- TRUE
+manual <- FALSE
 if (manual) {
   ctr <- "DOM"
   yr  <- 2024
