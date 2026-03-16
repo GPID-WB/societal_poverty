@@ -23,7 +23,7 @@ vars_to_keep <-
 ## basic medians for most of the countries ------
 
 
-manual <- TRUE
+manual <- FALSE
 if (manual) {
   ctr <- "DOM"
   yr  <- 2024

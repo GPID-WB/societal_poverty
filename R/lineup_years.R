@@ -3,6 +3,7 @@ source("R/setup.R")
 
 ## read functions --------------
 source("R/functions.R")
+
 force <- FALSE
 lup_medians_f <-
   fs::path("data", version) |>
@@ -22,15 +23,15 @@ if (!fs::file_exists(lup_medians_f) || isTRUE(force)) {
 
   fst::write_fst(med, lup_medians_f)
 } else {
-  med <- fst::read_fst(lup_medians_f)
+  med <- fst::read_fst(lup_medians_f, as.data.table = TRUE)
 }
 
 
 # Updsate manually a particualr country
-manual <- FALSE
+manual <- TRUE
 if (manual) {
-  ctr <- "DOM"
-  yr  <- 2024
+  ctr <- "SVK"
+  yr  <- 1981:1984
   med <- pipapi::pip(country = ctr,
                      year = yr,
                      popshare = .5,
@@ -144,13 +145,15 @@ fst_file <- fs::path(spl_datadir, "spr_lnp", ext = "fst")
 if (fs::file_exists(fst_file)) {
   f_spr <- fst::read_fst(fst_file, as.data.table = TRUE)
   setkey(f_spr, NULL)
-  byvars <- c("country_code", "reporting_year")
+  by_vars <- c("country_code", "reporting_year", "reporting_level", "welfare_type")
 
-  # remove old  information
-  f_spr <-  f_spr[!d_spr, on = byvars]
-
-  # add new information
-  d_spr <- rowbind(f_spr, d_spr, fill = TRUE)
+  # Update
+  d_spr <- joyn::joyn(f_spr, d_spr,
+                      by = by_vars,
+                      update_values = TRUE,
+                      match_type = "1:1",
+                      keep = "full",
+                      reportvar = FALSE)
 }
 
 
@@ -165,10 +168,6 @@ fst::write_fst(d_spr, fs::path(lkup$data_root, "_aux", "spr_lnp", ext = "fst"))
 
 
 haven::write_dta(d_spr, fs::path_ext_set(fst_file, "dta"))
-
-spr_id <- joyn::is_id(d_spr,by_vars, return_report = TRUE )
-spr_id[copies > 1]
-
 
 
 
