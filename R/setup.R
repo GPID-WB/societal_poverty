@@ -25,8 +25,8 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
   version <- "20250930_2017_01_02_PROD"
   version <- "20250930_2021_01_02_PROD"
 
-  version <- "20260324_2017_01_02_PROD"
   version <- "20260324_2021_01_02_PROD"
+  version <- "20260324_2017_01_02_PROD"
 
   ## Lkup files ===========
   lkups <- pipapi::create_versioned_lkups(
