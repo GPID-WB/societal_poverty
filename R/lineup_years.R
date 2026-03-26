@@ -1,5 +1,5 @@
 # Delay execution for 1 hour
-Sys.sleep(1 * 60 * 60)
+# Sys.sleep(1 * 60 * 60)
 
 # setup ---------
 source("R/setup.R")
