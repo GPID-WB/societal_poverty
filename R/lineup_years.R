@@ -1,3 +1,6 @@
+# Delay execution for 1 hour
+Sys.sleep(1 * 60 * 60)
+
 # setup ---------
 source("R/setup.R")
 
@@ -31,10 +34,11 @@ if (!fs::file_exists(lup_medians_f) || isTRUE(force)) {
 
 
 # Updsate manually a particualr country
-manual <- FALSE
+manual <- TRUE
 if (manual) {
-  ctr <- "SVK"
+  ctr <- "ALL"
   yr <- 1981:1984
+  yr <- 2026
   med <- pipapi::pip(
     country = ctr,
     year = yr,
