@@ -22,11 +22,11 @@ if (!"lkups" %in% ls() || isTRUE(force)) {
     fs::path()
   fs::dir_ls(data_dir, recurse = FALSE)
 
-  version <- "20250930_2017_01_02_PROD"
-  version <- "20250930_2021_01_02_PROD"
-
   version <- "20260324_2021_01_02_PROD"
   version <- "20260324_2017_01_02_PROD"
+
+  version <- "20260430_2021_01_02_INT"
+  version <- "20260430_2017_01_02_INT"
 
   ## Lkup files ===========
   lkups <- pipapi::create_versioned_lkups(

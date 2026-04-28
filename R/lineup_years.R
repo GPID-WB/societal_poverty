@@ -34,7 +34,7 @@ if (!fs::file_exists(lup_medians_f) || isTRUE(force)) {
 
 
 # Updsate manually a particualr country
-manual <- TRUE
+manual <- FALSE
 if (manual) {
   ctr <- "ALL"
   yr <- 1981:1984
