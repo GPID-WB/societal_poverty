@@ -34,11 +34,7 @@ if (!fs::file_exists(lup_medians_f) || isTRUE(force)) {
 
 
 # Updsate manually a particualr country
-manual <- FALSE
 if (manual) {
-  ctr <- "ALL"
-  yr <- 1981:1984
-  yr <- 2026
   med <- pipapi::pip(
     country = ctr,
     year = yr,
