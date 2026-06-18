@@ -23,8 +23,8 @@ fs::dir_ls(data_dir, recurse = FALSE)
 version <- "20260324_2021_01_02_PROD"
 version <- "20260324_2017_01_02_PROD"
 
-version <- "20260922_2017_01_02_PROD"
 version <- "20260922_2021_01_02_PROD"
+version <- "20260922_2017_01_02_PROD"
 
 ## Lkup files ===========
 lkups <- pipapi::create_versioned_lkups(
