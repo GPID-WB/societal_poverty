@@ -15,25 +15,22 @@ fastverse_conflicts()
 # setup ------------
 
 ## directories -----------
-force <- TRUE
 
-if (!"lkups" %in% ls() || isTRUE(force)) {
-  data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
-    fs::path()
-  fs::dir_ls(data_dir, recurse = FALSE)
+data_dir <- Sys.getenv("PIPAPI_DATA_ROOT_FOLDER_LOCAL") |>
+  fs::path()
+fs::dir_ls(data_dir, recurse = FALSE)
 
-  version <- "20260324_2021_01_02_PROD"
-  version <- "20260324_2017_01_02_PROD"
+version <- "20260324_2021_01_02_PROD"
+version <- "20260324_2017_01_02_PROD"
 
-  version <- "20260430_2021_01_02_INT"
-  version <- "20260430_2017_01_02_INT"
+version <- "20260922_2017_01_02_PROD"
+version <- "20260922_2021_01_02_PROD"
 
-  ## Lkup files ===========
-  lkups <- pipapi::create_versioned_lkups(
-    data_dir = data_dir,
-    vintage_pattern = version
-  )
-}
+## Lkup files ===========
+lkups <- pipapi::create_versioned_lkups(
+  data_dir = data_dir,
+  vintage_pattern = version
+)
 
 # ppp years
 ppp_year <- py <- version |>
